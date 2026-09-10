@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wayfinder Tree Test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#FAF8F3; --surface:#FFFFFF; --surface-2:#F0ECE2; --surface-3:#E7E1D2;
+  --ink:#1D2420; --ink-dim:#5B655F; --ink-faint:#8A928B; --border:#DEDACB;
+  --accent:#2F6F62; --accent-ink:#FFFFFF; --accent-soft:#E3EEE9; --accent-strong:#1F5145;
+  --success:#3D8361; --success-soft:#E5F2E9;
+  --warn:#B9803B; --warn-soft:#FAEEDD;
+  --danger:#B5473F; --danger-soft:#FBEAE7;
+  --focus:#2F6F62;
+  --shadow: 0 1px 2px rgba(30,36,32,.06), 0 6px 20px -8px rgba(30,36,32,.15);
+  --radius:12px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14181A; --surface:#1C2123; --surface-2:#242B2C; --surface-3:#2C3334;
+    --ink:#ECEEEA; --ink-dim:#A3ABA4; --ink-faint:#727B74; --border:#333B3B;
+    --accent:#63AB98; --accent-ink:#0B1613; --accent-soft:#1E2E2A; --accent-strong:#8AC4B2;
+    --success:#63B583; --success-soft:#182A20;
+    --warn:#DDA362; --warn-soft:#2B2015;
+    --danger:#DE7B72; --danger-soft:#2C1917;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14181A; --surface:#1C2123; --surface-2:#242B2C; --surface-3:#2C3334;
+  --ink:#ECEEEA; --ink-dim:#A3ABA4; --ink-faint:#727B74; --border:#333B3B;
+  --accent:#63AB98; --accent-ink:#0B1613; --accent-soft:#1E2E2A; --accent-strong:#8AC4B2;
+  --success:#63B583; --success-soft:#182A20;
+  --warn:#DDA362; --warn-soft:#2B2015;
+  --danger:#DE7B72; --danger-soft:#2C1917;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:600;text-wrap:balance;margin:0 0 .3em;color:var(--ink);}
+p{margin:0 0 1em;color:var(--ink-dim);}
+.mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;}
+a{color:var(--accent-strong);}
+button{font-family:inherit;}
+::selection{background:var(--accent-soft);}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;}
+
+.shell{min-height:100vh;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Fraunces",serif;font-weight:600;font-size:1.05rem;}
+.brand .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-family:"IBM Plex Mono";font-size:.8rem;font-weight:600;flex:none;}
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:10px;}
+.tab{border:none;background:none;padding:7px 14px;border-radius:7px;font-size:.85rem;font-weight:600;color:var(--ink-dim);cursor:pointer;}
+.tab.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);}
+.tab:hover:not(.active){color:var(--ink);}
+
+main{flex:1;width:100%;}
+.wrap{max-width:720px;margin:0 auto;padding:40px 24px 80px;}
+.wrap-wide{max-width:1080px;margin:0 auto;padding:40px 24px 80px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);}
+.card + .card{margin-top:16px;}
+.eyebrow{font-family:"IBM Plex Mono";font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-strong);font-weight:600;margin-bottom:8px;display:block;}
+.banner{display:flex;gap:12px;align-items:flex-start;background:var(--accent-soft);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;font-size:.88rem;color:var(--ink);}
+.banner strong{color:var(--accent-strong);}
+.banner.warn{background:var(--warn-soft);}
+.btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:10px 16px;border-radius:9px;font-size:.88rem;font-weight:600;cursor:pointer;text-decoration:none;}
+.btn:hover{border-color:var(--accent);}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);}
+.btn-primary:hover{background:var(--accent-strong);border-color:var(--accent-strong);}
+.btn-ghost{border-color:transparent;background:none;}
+.btn-danger{color:var(--danger);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-sm{padding:6px 11px;font-size:.78rem;}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.row.between{justify-content:space-between;}
+.stack{display:flex;flex-direction:column;gap:10px;}
+label{font-size:.8rem;font-weight:600;color:var(--ink-dim);display:block;margin-bottom:5px;}
+input[type=text],input[type=password],input[type=email],textarea{width:100%;font:inherit;font-size:.92rem;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);}
+textarea{resize:vertical;min-height:80px;font-family:"IBM Plex Mono";font-size:.8rem;}
+.field{margin-bottom:14px;}
+.hint{font-size:.78rem;color:var(--ink-faint);margin-top:4px;}
+
+/* --- take-test flow --- */
+.intro-hero{text-align:left;margin-bottom:28px;}
+.intro-hero h1{font-size:2rem;}
+.progress{display:flex;gap:6px;margin-bottom:18px;}
+.progress .dot{height:6px;flex:1;border-radius:3px;background:var(--surface-3);}
+.progress .dot.done{background:var(--accent);}
+.progress .dot.current{background:var(--accent-soft);border:1px solid var(--accent);}
+.task-label{font-size:.78rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:6px;}
+.task-text{font-size:1.25rem;font-family:"Fraunces",serif;font-weight:600;margin-bottom:22px;text-wrap:balance;}
+.crumbs{font-family:"IBM Plex Mono";font-size:.78rem;color:var(--ink-dim);background:var(--surface-2);border-radius:8px;padding:9px 12px;margin-bottom:16px;overflow-x:auto;white-space:nowrap;}
+.crumbs b{color:var(--ink);}
+.node-list{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:8px;}
+.node-btn{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);padding:13px 15px;border-radius:9px;cursor:pointer;font-size:.95rem;font-weight:500;color:var(--ink);}
+.node-btn:hover{border-color:var(--accent);background:var(--accent-soft);}
+.node-btn .chev{color:var(--ink-faint);font-family:"IBM Plex Mono";}
+.confirm-box{border-top:1px dashed var(--border);padding-top:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.leaf-note{font-size:.82rem;color:var(--ink-faint);}
+.nav-links{display:flex;gap:16px;margin-bottom:14px;font-size:.82rem;}
+.nav-links button{background:none;border:none;color:var(--ink-dim);cursor:pointer;font-weight:600;padding:0;font-size:inherit;font-family:inherit;}
+.nav-links button:hover{color:var(--accent-strong);}
+
+/* results-of-one summary */
+.score-hero{display:flex;gap:24px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+.score-num{font-family:"Fraunces",serif;font-size:2.6rem;font-weight:600;}
+.taskrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.taskrow:last-child{border-bottom:none;}
+.pill{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex:none;}
+.pill.ok{background:var(--success-soft);color:var(--success);}
+.pill.no{background:var(--danger-soft);color:var(--danger);}
+.pill.skip{background:var(--surface-3);color:var(--ink-faint);}
+.taskrow .t{flex:1;font-size:.88rem;}
+.taskrow .meta{font-size:.76rem;color:var(--ink-faint);font-family:"IBM Plex Mono";}
+
+/* stats dashboard */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+.stat-card .num{font-family:"Fraunces",serif;font-size:1.9rem;font-weight:600;line-height:1;}
+.stat-card .lbl{font-size:.76rem;color:var(--ink-dim);margin-top:6px;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);padding:8px 10px;border-bottom:1px solid var(--border);}
+td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+.bar-track{background:var(--surface-2);border-radius:5px;height:9px;width:120px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;background:var(--accent);}
+.bar-fill.low{background:var(--danger);}
+.bar-fill.mid{background:var(--warn);}
+.tbl-wrap{overflow-x:auto;}
+
+/* tree editor */
+.tree-editor ul{list-style:none;margin:0;padding-left:22px;border-left:1px dashed var(--border);}
+.tree-editor > ul{padding-left:0;border-left:none;}
+.tree-node{margin:6px 0;}
+.tree-node-row{display:flex;align-items:center;gap:6px;}
+.tree-node-row input[type=text]{flex:1;padding:6px 9px;font-size:.85rem;}
+.node-actions{display:flex;gap:3px;}
+.icon-btn{border:1px solid var(--border);background:var(--surface);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:.8rem;color:var(--ink-dim);display:flex;align-items:center;justify-content:center;}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent-strong);}
+
+.task-editor-card{border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface-2);margin-bottom:12px;}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent-strong);border-radius:999px;padding:4px 10px;font-size:.76rem;font-weight:600;margin:3px 4px 0 0;}
+.chip button{background:none;border:none;cursor:pointer;color:inherit;font-weight:700;padding:0;}
+.node-picker{max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface);}
+.node-picker label{display:block;font-weight:400;font-size:.82rem;color:var(--ink);margin:2px 0;cursor:pointer;}
+
+.gate{max-width:380px;margin:80px auto;}
+.footer-note{text-align:center;color:var(--ink-faint);font-size:.78rem;padding:20px;}
+.divider{height:1px;background:var(--border);margin:22px 0;}
+.copy-box{position:relative;}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:8px;font-size:.85rem;box-shadow:var(--shadow);z-index:50;}
+[hidden]{display:none!important;}
+</style>
+</head>
+<body>
+<script type="application/json" id="study-data">{"study": {"title": "Cedar Grove Library \u2014 Website Navigation", "intro": "We're testing a proposed navigation structure for the Cedar Grove Public Library website. You'll be given a few short tasks \u2014 just click through the categories the way you would on a real site.", "contactEmail": "abikowski@reingold.com", "adminPass": "reingold", "isExample": true, "endpointUrl": "", "resultsKey": "", "sheetUrl": "", "tree": {"id": "root_home", "label": "Home", "children": [{"id": "n_books", "label": "Books & Media", "children": [{"id": "n_catalog", "label": "Search the Catalog", "children": []}, {"id": "n_ebooks", "label": "eBooks & Audiobooks", "children": []}, {"id": "n_renew", "label": "Renew or Return Items", "children": []}]}, {"id": "n_programs", "label": "Programs & Events", "children": [{"id": "n_storytime", "label": "Story Time for Kids", "children": []}, {"id": "n_classes", "label": "Adult Classes & Workshops", "children": []}, {"id": "n_calendar", "label": "Event Calendar", "children": []}]}, {"id": "n_account", "label": "Library Card & Account", "children": [{"id": "n_apply", "label": "Apply for a Card", "children": []}, {"id": "n_manage", "label": "Manage Your Account", "children": []}, {"id": "n_fines", "label": "Fines & Fees", "children": []}]}, {"id": "n_locations", "label": "Locations & Hours", "children": [{"id": "n_branches", "label": "Branch Locations", "children": []}, {"id": "n_holidayhours", "label": "Holiday Hours", "children": []}]}, {"id": "n_about", "label": "About the Library", "children": [{"id": "n_mission", "label": "Mission & History", "children": []}, {"id": "n_board", "label": "Board Meetings", "children": []}, {"id": "n_careers", "label": "Careers", "children": []}]}]}, "tasks": [{"id": "t1", "text": "You want to know if the library is open on Thanksgiving.", "correctIds": ["n_holidayhours"]}, {"id": "t2", "text": "Your child wants to go to a weekend story time. Where would you look to find out when it happens?", "correctIds": ["n_storytime", "n_calendar"]}]}, "results": []}</script>
+<div id="app"></div>
+<script>
+(function(){
+"use strict";
+
+/* ---------- state ---------- */
+var raw = document.getElementById('study-data').textContent;
+var STATE = JSON.parse(raw);
+// STATE = { study: {title, intro, tree, tasks, adminPass}, results: [] }
+
+function uid(prefix){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
+
+function findNode(tree, id){
+  if(tree.id === id) return tree;
+  if(!tree.children) return null;
+  for(var i=0;i<tree.children.length;i++){
+    var f = findNode(tree.children[i], id);
+    if(f) return f;
+  }
+  return null;
+}
+function findPathIds(tree, id, path){
+  path = path || [];
+  path = path.concat([tree.id]);
+  if(tree.id === id) return path;
+  if(!tree.children) return null;
+  for(var i=0;i<tree.children.length;i++){
+    var f = findPathIds(tree.children[i], id, path);
+    if(f) return f;
+  }
+  return null;
+}
+function nodeLabel(tree, id){ var n = findNode(tree, id); return n ? n.label : '(deleted item)'; }
+
+/* ---------- routing ---------- */
+function route(){ return (location.hash || '#test').replace('#',''); }
+window.addEventListener('hashchange', render);
+
+/* ---------- gate (lightweight, not real security) ---------- */
+function isUnlocked(){ return sessionStorage.getItem('wf_unlocked') === '1'; }
+function unlock(pass){
+  if(pass === (STATE.study.adminPass || '')){ sessionStorage.setItem('wf_unlocked','1'); return true; }
+  return false;
+}
+
+/* ---------- rebuild the whole page as a downloadable static file ---------- */
+function buildFullDocument(){
+  var dataBlock = '<script type="application/json" id="study-data">' + JSON.stringify(STATE).replace(/</g,'\\u003c') + '<\/script>';
+  return '<!doctype html>\n' + document.documentElement.outerHTML.replace(
+    /<script type="application\/json" id="study-data">[\s\S]*?<\/script>/,
+    dataBlock
+  );
+}
+function downloadUpdatedSite(){
+  var blob = new Blob([buildFullDocument()], {type:'text/html'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'index.html';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+function toast(msg){
+  var el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3200);
+}
+
+/* ================= TAKE TEST ================= */
+var testSession = null; // {taskIndex, path:[rootid], startedAt, backtracks, answers:[]}
+
+function newTestSession(){
+  return { taskIndex: -1, path: [STATE.study.tree.id], startedAt: 0, backtracks: 0, answers: [] };
+}
+
+function renderIntro(root){
+  var s = STATE.study;
+  root.innerHTML =
+    '<div class="wrap">' +
+      (s.isExample ? '<div class="banner"><span>\uD83D\uDC41\uFE0F</span><span><strong>This is an example study.</strong> Replace the tree and tasks in Researcher Tools before sharing this link with real participants.</span></div>' : '') +
+      '<div class="intro-hero"><span class="eyebrow">Tree Test</span><h1>' + esc(s.title) + '</h1><p>' + esc(s.intro).replace(/\\n/g,'<br>') + '</p></div>' +
+      '<div class="card">' +
+        '<p style="margin-bottom:16px">You\'ll be given ' + s.tasks.length + ' short task' + (s.tasks.length===1?'':'s') + '. For each one, click through the list of categories until you reach the item you think is the right answer — like exploring a site\'s menu with no visual design to guide you. There are no wrong answers; we\'re testing the menu, not you.</p>' +
+        '<button class="btn btn-primary" id="start-btn">Start' + (s.tasks.length? '' : '') + ' \u2192</button>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('start-btn').onclick = function(){
+    testSession = newTestSession();
+    nextTask();
+  };
+}
+
+function nextTask(){
+  testSession.taskIndex++;
+  if(testSession.taskIndex >= STATE.study.tasks.length){ renderTestDone(); return; }
+  testSession.path = [STATE.study.tree.id];
+  testSession.backtracks = 0;
+  testSession.startedAt = performance.now();
+  renderTaskScreen();
+}
+
+function currentNode(){ return findNode(STATE.study.tree, testSession.path[testSession.path.length-1]); }
+
+function renderTaskScreen(){
+  var root = document.getElementById('app');
+  var s = STATE.study;
+  var t = s.tasks[testSession.taskIndex];
+  var node = currentNode();
+  var atRoot = testSession.path.length === 1;
+  var dots = s.tasks.map(function(_,i){
+    var cls = i < testSession.taskIndex ? 'done' : (i === testSession.taskIndex ? 'current' : '');
+    return '<span class="dot ' + cls + '"></span>';
+  }).join('');
+  var crumbLabels = testSession.path.map(function(id){ return nodeLabel(s.tree, id); });
+  var crumbHtml = crumbLabels.map(function(l,i){ return (i===crumbLabels.length-1? '<b>'+esc(l)+'</b>' : esc(l)); }).join(' <span style="opacity:.5">\u203A</span> ');
+  var kids = node.children || [];
+  var kidsHtml = kids.length ? kids.map(function(c){
+    return '<li><button class="node-btn" data-nav="'+c.id+'"><span>'+esc(c.label)+'</span><span class="chev">'+(c.children&&c.children.length? (c.children.length + ' \u203A') : '\u2014')+'</span></button></li>';
+  }).join('') : '';
+
+  root.innerHTML =
+    '<div class="wrap">' +
+      '<div class="progress">' + dots + '</div>' +
+      '<div class="task-label">Task ' + (testSession.taskIndex+1) + ' of ' + s.tasks.length + '</div>' +
+      '<div class="task-text">' + esc(t.text) + '</div>' +
+      '<div class="nav-links">' +
+        (atRoot ? '' : '<button id="back-btn">\u2190 Back</button>') +
+        (atRoot ? '' : '<button id="restart-btn">Start over</button>') +
+        '<button id="giveup-btn" style="margin-left:auto;color:var(--ink-faint)">I can\'t find it \u2192</button>' +
+      '</div>' +
+      '<div class="crumbs">' + crumbHtml + '</div>' +
+      (kids.length ? '<ul class="node-list">'+kidsHtml+'</ul>' : '<p style="font-style:italic">This item has no further sub-categories.</p>') +
+      '<div class="confirm-box">' +
+        '<span class="leaf-note">' + (atRoot ? 'Pick a category above to begin exploring.' : 'Landed somewhere that answers the task?') + '</span>' +
+        '<button class="btn btn-primary" id="confirm-btn" ' + (atRoot?'disabled':'') + '>\u2713 I\'d find my answer here</button>' +
+      '</div>' +
+    '</div>';
+
+  root.querySelectorAll('[data-nav]').forEach(function(b){
+    b.onclick = function(){ testSession.path.push(b.getAttribute('data-nav')); renderTaskScreen(); };
+  });
+  var backBtn = document.getElementById('back-btn');
+  if(backBtn) backBtn.onclick = function(){ testSession.path.pop(); testSession.backtracks++; renderTaskScreen(); };
+  var restartBtn = document.getElementById('restart-btn');
+  if(restartBtn) restartBtn.onclick = function(){ testSession.backtracks++; testSession.path = [s.tree.id]; renderTaskScreen(); };
+  document.getElementById('giveup-btn').onclick = function(){ recordAnswer(null, true); };
+  var confirmBtn = document.getElementById('confirm-btn');
+  if(confirmBtn) confirmBtn.onclick = function(){ recordAnswer(node.id, false); };
+}
+
+function recordAnswer(destId, skipped){
+  var s = STATE.study;
+  var t = s.tasks[testSession.taskIndex];
+  var elapsed = Math.round(performance.now() - testSession.startedAt);
+  var correct = !skipped && t.correctIds && t.correctIds.indexOf(destId) !== -1;
+  testSession.answers.push({
+    taskId: t.id, taskText: t.text, destId: destId,
+    destLabel: (skipped || destId==null) ? '' : nodeLabel(s.tree, destId),
+    skipped: skipped, correct: !!correct,
+    timeMs: elapsed, backtracks: testSession.backtracks, pathLen: testSession.path.length - 1
+  });
+  nextTask();
+}
+
+function renderTestDone(){
+  var root = document.getElementById('app');
+  var s = STATE.study;
+  var correctCount = testSession.answers.filter(function(a){return a.correct;}).length;
+  var pct = Math.round(100*correctCount/s.tasks.length);
+  var rows = testSession.answers.map(function(a){
+    var pillCls = a.skipped ? 'skip' : (a.correct ? 'ok' : 'no');
+    var pillTxt = a.skipped ? '–' : (a.correct ? '✓' : '✕');
+    return '<div class="taskrow"><div class="pill '+pillCls+'">'+pillTxt+'</div><div class="t">'+esc(a.taskText)+'<div class="meta">landed on: '+(a.skipped?'gave up':esc(a.destLabel))+'</div></div><div class="meta">'+(a.timeMs/1000).toFixed(1)+'s</div></div>';
+  }).join('');
+
+  var resultRecord = {
+    id: uid('r'),
+    submittedAt: new Date().toISOString(),
+    studyTitle: s.title,
+    respondent: '',
+    answers: testSession.answers
+  };
+  window.__lastResult = resultRecord;
+
+  root.innerHTML =
+    '<div class="wrap">' +
+      '<div class="card">' +
+        '<span class="eyebrow">All done</span>' +
+        '<div class="score-hero"><div class="score-num">' + pct + '%</div><div><strong>' + correctCount + ' of ' + s.tasks.length + '</strong> tasks landed on the intended answer.<br><span class="hint" id="save-status">Saving your results…</span></div></div>' +
+        '<div class="divider"></div>' +
+        rows +
+      '</div>' +
+      '<div class="card" id="fallback-card" hidden>' +
+        '<span class="eyebrow">Send your results directly</span>' +
+        '<p id="fallback-reason">This tool couldn\'t confirm your results were saved automatically. You can send them directly instead.</p>' +
+        '<div class="row">' +
+          '<button class="btn btn-primary" id="copy-btn">Copy results</button>' +
+          '<a class="btn" id="email-btn" href="#">Email results</a>' +
+        '</div>' +
+        '<p class="hint" id="send-hint" style="margin-top:10px"></p>' +
+      '</div>' +
+    '</div>';
+
+  function showFallback(reason){
+    var card = document.getElementById('fallback-card');
+    card.hidden = false;
+    if(reason) document.getElementById('fallback-reason').textContent = reason;
+  }
+
+  document.getElementById('copy-btn') && (document.getElementById('copy-btn').onclick = function(){
+    var payload = JSON.stringify(resultRecord);
+    navigator.clipboard && navigator.clipboard.writeText(payload).then(function(){
+      document.getElementById('send-hint').textContent = 'Copied! Paste it into an email or message to the researcher.';
+    }, function(){
+      document.getElementById('send-hint').textContent = 'Could not copy automatically — select and copy manually: ' + payload;
+    });
+  });
+  var emailBtn = document.getElementById('email-btn');
+  if(emailBtn) emailBtn.onclick = function(){
+    var payload = JSON.stringify(resultRecord);
+    var subject = encodeURIComponent('Tree test results: ' + s.title);
+    var body = encodeURIComponent('Results from a tree test session that could not be saved automatically.\n\nPaste this whole block into the researcher\'s Results tab:\n\n' + payload);
+    location.href = 'mailto:' + encodeURIComponent(s.contactEmail||'') + '?subject=' + subject + '&body=' + body;
+  };
+
+  var statusEl = document.getElementById('save-status');
+  if(!s.endpointUrl){
+    statusEl.textContent = 'This study has no results endpoint configured yet.';
+    showFallback('The researcher hasn\'t connected a results sheet to this study yet. You can still send your results directly:');
+    return;
+  }
+
+  fetch(s.endpointUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(resultRecord)
+  }).then(function(){
+    // 'no-cors' responses are always opaque — we can't read success/failure,
+    // so a resolved promise is the best signal we get that the request went out.
+    statusEl.textContent = 'Your results were recorded. Thank you for taking the time to try this.';
+  }).catch(function(){
+    statusEl.textContent = 'Your results could not be sent automatically.';
+    showFallback('Your connection may be offline, or the results endpoint may be misconfigured. You can still send your results directly:');
+  });
+}
+/* ================= SETUP (admin) ================= */
+function renderGate(root, onOk, label){
+  root.innerHTML =
+    '<div class="wrap"><div class="gate card">' +
+      '<span class="eyebrow">Researcher tools</span>' +
+      '<h2 style="font-size:1.3rem">' + label + '</h2>' +
+      '<p>This area is for the person running the study. Enter the researcher passphrase to continue.</p>' +
+      '<div class="field"><label>Passphrase</label><input type="password" id="pass-input"></div>' +
+      '<button class="btn btn-primary" id="gate-btn">Continue</button>' +
+      '<p class="hint" id="gate-err" style="color:var(--danger)"></p>' +
+      '<div class="divider"></div>' +
+      '<a href="#test" class="hint">\u2190 Back to the test</a>' +
+    '</div></div>';
+  document.getElementById('gate-btn').onclick = function(){
+    if(unlock(document.getElementById('pass-input').value)) onOk();
+    else document.getElementById('gate-err').textContent = 'That passphrase is not correct.';
+  };
+  document.getElementById('pass-input').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('gate-btn').click(); });
+}
+
+function esc(str){
+  return (str==null?'':String(str)).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+}
+
+function treeNodeEditorHtml(node, isRoot){
+  var kids = (node.children||[]).map(function(c){ return '<li>'+treeNodeEditorHtml(c,false)+'</li>'; }).join('');
+  return '<div class="tree-node" data-id="'+node.id+'">' +
+    '<div class="tree-node-row">' +
+      (isRoot ? '<span class="mono" style="font-size:.78rem;color:var(--ink-faint);padding:6px 4px">home \u2192</span>' : '') +
+      '<input type="text" value="'+esc(node.label)+'" data-rename="'+node.id+'" '+(isRoot?'placeholder="Site / study name"':'')+'>' +
+      '<div class="node-actions">' +
+        '<button class="icon-btn" data-addchild="'+node.id+'" title="Add sub-item">+</button>' +
+        (isRoot ? '' : '<button class="icon-btn" data-delete="'+node.id+'" title="Delete">\u2715</button>') +
+      '</div>' +
+    '</div>' +
+    (kids ? '<ul>'+kids+'</ul>' : '') +
+  '</div>';
+}
+
+function allNodesFlat(node, depth, out){
+  out = out || []; depth = depth||0;
+  out.push({id:node.id, label:node.label, depth:depth});
+  (node.children||[]).forEach(function(c){ allNodesFlat(c, depth+1, out); });
+  return out;
+}
+
+function renderSetup(root){
+  var s = STATE.study;
+  var flat = allNodesFlat(s.tree);
+
+  var taskCards = s.tasks.map(function(t, idx){
+    var chips = (t.correctIds||[]).map(function(id){
+      return '<span class="chip">'+esc(nodeLabel(s.tree,id))+'<button data-unmark="'+idx+':'+id+'">\u2715</button></span>';
+    }).join('');
+    var pickerRows = flat.filter(function(n){return n.id!==s.tree.id;}).map(function(n){
+      var checked = (t.correctIds||[]).indexOf(n.id) !== -1;
+      return '<label><input type="checkbox" data-mark="'+idx+':'+n.id+'" '+(checked?'checked':'')+'> '+Array(n.depth).join('\u2003')+esc(n.label)+'</label>';
+    }).join('');
+    return '<div class="task-editor-card">' +
+      '<div class="field"><label>Task ' + (idx+1) + '</label><textarea data-task-text="'+idx+'" rows="2" placeholder="e.g. Where would you go to find out if the library is open on a holiday?">'+esc(t.text)+'</textarea></div>' +
+      '<label>Correct answer(s)</label><div style="margin-bottom:8px">' + (chips || '<span class="hint">None selected yet</span>') + '</div>' +
+      '<details><summary class="hint" style="cursor:pointer">Choose correct item(s) in the tree</summary><div class="node-picker" style="margin-top:8px">'+pickerRows+'</div></details>' +
+      '<div class="row" style="margin-top:10px"><button class="btn btn-sm btn-danger" data-del-task="'+idx+'">Delete task</button></div>' +
+    '</div>';
+  }).join('');
+
+  var shareUrl = location.href.split('#')[0];
+
+  root.innerHTML =
+    '<div class="wrap-wide">' +
+      '<div class="row between" style="margin-bottom:18px">' +
+        '<div><span class="eyebrow">Researcher tools</span><h1 style="font-size:1.6rem">Set up your tree test</h1></div>' +
+        '<a href="#results" class="btn">View results \u2192</a>' +
+      '</div>' +
+
+      '<div class="card" style="margin-bottom:16px">' +
+        '<span class="eyebrow">Share with participants</span>' +
+        '<p style="margin-bottom:10px">Anyone with this link can take the test — no account or login needed.</p>' +
+        '<div class="row"><input type="text" readonly value="'+esc(shareUrl)+'" style="flex:1;min-width:220px"><button class="btn" id="copy-link-btn">Copy link</button></div>' +
+      '</div>' +
+
+      '<div class="card" style="margin-bottom:16px">' +
+        '<span class="eyebrow">Results connection</span>' +
+        '<p style="margin-bottom:10px">Paste in the Google Apps Script Web app URL (see the setup guide) so each finished session saves straight to your Google Sheet.</p>' +
+        '<div class="field"><label>Results endpoint (Apps Script web app URL)</label><input type="text" id="f-endpoint" placeholder="https://script.google.com/macros/s/.../exec" value="'+esc(s.endpointUrl||'')+'"></div>' +
+        '<div class="field"><label>Results key (must match RESULTS_KEY in the script — used to view results here)</label><input type="text" id="f-key" value="'+esc(s.resultsKey||'')+'"></div>' +
+        '<div class="field"><label>Link to the Google Sheet itself (optional, for "open the sheet" button)</label><input type="text" id="f-sheet" placeholder="https://docs.google.com/spreadsheets/..." value="'+esc(s.sheetUrl||'')+'"></div>' +
+        '<div class="row"><button class="btn" id="test-endpoint-btn">Test connection</button><span class="hint" id="endpoint-test-hint"></span></div>' +
+      '</div>' +
+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start" class="setup-grid">' +
+        '<div class="card">' +
+          '<span class="eyebrow">Study details</span>' +
+          '<div class="field"><label>Title</label><input type="text" id="f-title" value="'+esc(s.title)+'"></div>' +
+          '<div class="field"><label>Introduction shown to participants</label><textarea id="f-intro" rows="4" style="font-family:inherit">'+esc(s.intro)+'</textarea></div>' +
+          '<div class="field"><label>Your contact email (used in the "email results" link)</label><input type="text" id="f-email" value="'+esc(s.contactEmail||'')+'"></div>' +
+          '<div class="field"><label>Researcher passphrase (protects this tab and Results)</label><input type="text" id="f-pass" value="'+esc(s.adminPass||'')+'"></div>' +
+
+          '<div class="divider"></div>' +
+          '<span class="eyebrow">Navigation tree</span>' +
+          (s.isExample ? '<div class="banner warn"><span>\u26A0\uFE0F</span><span>This is example content. <button class="btn btn-sm" id="clear-example-btn" style="margin-left:6px">Clear example &amp; start fresh</button></span></div>' : '') +
+          '<div class="tree-editor" id="tree-editor"><ul><li>'+treeNodeEditorHtml(s.tree, true)+'</li></ul></div>' +
+        '</div>' +
+
+        '<div class="card">' +
+          '<span class="eyebrow">Tasks</span>' +
+          '<p>Write a short scenario for each task, then mark which item(s) in the tree count as a correct answer.</p>' +
+          taskCards +
+          '<button class="btn" id="add-task-btn">+ Add task</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="card" style="margin-top:16px;background:var(--accent-soft);border-color:var(--accent)">' +
+        '<span class="eyebrow">Publish your changes</span>' +
+        '<p style="margin-bottom:10px">This page is a static file, so saving means downloading the updated file and replacing it in your GitHub repository (or wherever you host it). Participants using the old file won\'t see your edits until you do this.</p>' +
+        '<button class="btn btn-primary" id="save-btn">Download updated site file</button>' +
+      '</div>' +
+      '<style>@media(max-width:800px){.setup-grid{grid-template-columns:1fr!important}}</style>' +
+    '</div>';
+
+  document.getElementById('copy-link-btn').onclick = function(){
+    navigator.clipboard.writeText(shareUrl);
+    toast('Link copied.');
+  };
+
+  root.querySelectorAll('[data-rename]').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var n = findNode(s.tree, inp.getAttribute('data-rename'));
+      if(n) n.label = inp.value;
+    });
+  });
+  root.querySelectorAll('[data-addchild]').forEach(function(btn){
+    btn.onclick = function(){
+      var n = findNode(s.tree, btn.getAttribute('data-addchild'));
+      n.children = n.children || [];
+      n.children.push({id: uid('n'), label: 'New item', children: []});
+      renderSetup(root);
+    };
+  });
+  root.querySelectorAll('[data-delete]').forEach(function(btn){
+    btn.onclick = function(){
+      var id = btn.getAttribute('data-delete');
+      removeNode(s.tree, id);
+      renderSetup(root);
+    };
+  });
+  var clearEx = document.getElementById('clear-example-btn');
+  if(clearEx) clearEx.onclick = function(){
+    if(!confirm('Replace the example tree and tasks with a blank study?')) return;
+    s.isExample = false;
+    s.tree = { id: uid('n'), label: 'Home', children: [] };
+    s.tasks = [];
+    renderSetup(root);
+  };
+
+  root.querySelectorAll('[data-task-text]').forEach(function(ta){
+    ta.addEventListener('input', function(){ s.tasks[+ta.getAttribute('data-task-text')].text = ta.value; });
+  });
+  root.querySelectorAll('[data-mark]').forEach(function(cb){
+    cb.onchange = function(){
+      var parts = cb.getAttribute('data-mark').split(':'); var idx = +parts[0], id = parts[1];
+      var t = s.tasks[idx]; t.correctIds = t.correctIds || [];
+      var pos = t.correctIds.indexOf(id);
+      if(cb.checked && pos===-1) t.correctIds.push(id);
+      if(!cb.checked && pos!==-1) t.correctIds.splice(pos,1);
+      renderSetup(root);
+    };
+  });
+  root.querySelectorAll('[data-unmark]').forEach(function(btn){
+    btn.onclick = function(){
+      var parts = btn.getAttribute('data-unmark').split(':'); var idx = +parts[0], id = parts[1];
+      var t = s.tasks[idx]; t.correctIds = (t.correctIds||[]).filter(function(x){return x!==id;});
+      renderSetup(root);
+    };
+  });
+  root.querySelectorAll('[data-del-task]').forEach(function(btn){
+    btn.onclick = function(){ s.tasks.splice(+btn.getAttribute('data-del-task'),1); renderSetup(root); };
+  });
+  document.getElementById('add-task-btn').onclick = function(){
+    s.tasks.push({id: uid('t'), text:'', correctIds:[]});
+    renderSetup(root);
+  };
+
+  document.getElementById('f-title').addEventListener('input', function(e){ s.title = e.target.value; });
+  document.getElementById('f-intro').addEventListener('input', function(e){ s.intro = e.target.value; });
+  document.getElementById('f-email').addEventListener('input', function(e){ s.contactEmail = e.target.value; });
+  document.getElementById('f-pass').addEventListener('input', function(e){ s.adminPass = e.target.value; });
+  document.getElementById('f-endpoint').addEventListener('input', function(e){ s.endpointUrl = e.target.value.trim(); });
+  document.getElementById('f-key').addEventListener('input', function(e){ s.resultsKey = e.target.value.trim(); });
+  document.getElementById('f-sheet').addEventListener('input', function(e){ s.sheetUrl = e.target.value.trim(); });
+
+  document.getElementById('test-endpoint-btn').onclick = async function(){
+    var hint = document.getElementById('endpoint-test-hint');
+    if(!s.endpointUrl){ hint.textContent = 'Add a results endpoint URL first.'; return; }
+    hint.textContent = 'Testing\u2026';
+    try{
+      var resp = await fetch(s.endpointUrl + '?key=' + encodeURIComponent(s.resultsKey||''));
+      var data = await resp.json();
+      if(data && data.ok){ hint.textContent = '\u2713 Connected — found ' + (data.rows?data.rows.length:0) + ' saved response(s).'; }
+      else if(data && data.error === 'unauthorized'){ hint.textContent = 'Reached the script, but the results key doesn\'t match RESULTS_KEY in Code.gs.'; }
+      else { hint.textContent = 'Reached the script but got an unexpected reply.'; }
+    }catch(e){
+      hint.textContent = 'Could not reach that URL. Check it was deployed with "Who has access: Anyone" and try again.';
+    }
+  };
+
+  document.getElementById('save-btn').onclick = function(){
+    downloadUpdatedSite();
+    toast('Downloaded — upload this file to GitHub to replace the live version.');
+  };
+}
+
+function removeNode(tree, id){
+  if(!tree.children) return false;
+  for(var i=0;i<tree.children.length;i++){
+    if(tree.children[i].id === id){ tree.children.splice(i,1); return true; }
+    if(removeNode(tree.children[i], id)) return true;
+  }
+  return false;
+}
+
+/* ================= RESULTS (admin) ================= */
+function computeStatsFromRows(rows, tasks){
+  var totalSessions = {};
+  rows.forEach(function(r){ totalSessions[r.session_id] = true; });
+  var n = rows.length;
+  var successCount = rows.filter(function(r){ return r.correct === 'yes'; }).length;
+  var overallSuccess = n ? Math.round(100*successCount/n) : 0;
+  var directCount = rows.filter(function(r){ return Number(r.backtracks)===0 && r.skipped !== 'yes'; }).length;
+  var overallDirect = n ? Math.round(100*directCount/n) : 0;
+  var avgTime = n ? Math.round(rows.reduce(function(sum,r){return sum+Number(r.time_seconds||0);},0)/n*10)/10 : 0;
+
+  var perTask = tasks.map(function(t){
+    var ans = rows.filter(function(r){ return r.task === t.text; });
+    var an = ans.length;
+    var succ = ans.filter(function(r){return r.correct==='yes';}).length;
+    var direct = ans.filter(function(r){return Number(r.backtracks)===0 && r.skipped!=='yes';}).length;
+    var time = an ? Math.round(ans.reduce(function(sum,r){return sum+Number(r.time_seconds||0);},0)/an*10)/10 : 0;
+    var destCounts = {};
+    ans.forEach(function(r){ var k = r.skipped==='yes' ? 'Gave up' : (r.landed_on||'(unknown)'); destCounts[k] = (destCounts[k]||0)+1; });
+    var topDest = Object.keys(destCounts).sort(function(a,b){return destCounts[b]-destCounts[a];});
+    return { task:t, n:an, successPct: an? Math.round(100*succ/an):0, directPct: an? Math.round(100*direct/an):0, avgTime:time, destCounts:destCounts, topDest:topDest };
+  });
+
+  return { totalSessions:Object.keys(totalSessions).length, overallSuccess:overallSuccess, overallDirect:overallDirect, avgTime:avgTime, perTask:perTask };
+}
+
+function barClass(pct){ return pct>=70?'':(pct>=40?'mid':'low'); }
+
+function renderResults(root){
+  var s = STATE.study;
+
+  if(!s.endpointUrl){
+    root.innerHTML =
+      '<div class="wrap-wide">' +
+        '<div class="row between" style="margin-bottom:18px"><div><span class="eyebrow">Researcher tools</span><h1 style="font-size:1.6rem">Results</h1></div><a href="#setup" class="btn">← Edit study</a></div>' +
+        '<div class="banner warn"><span>⚠️</span><span>No results endpoint is configured yet. Go to <a href="#setup">Researcher tools</a> and paste in your Apps Script web app URL first.</span></div>' +
+      '</div>';
+    return;
+  }
+
+  root.innerHTML =
+    '<div class="wrap-wide">' +
+      '<div class="row between" style="margin-bottom:18px">' +
+        '<div><span class="eyebrow">Researcher tools</span><h1 style="font-size:1.6rem">Results</h1></div>' +
+        '<div class="row">' +
+          (s.sheetUrl ? '<a href="'+esc(s.sheetUrl)+'" target="_blank" rel="noopener" class="btn">Open the Google Sheet ↗</a>' : '') +
+          '<a href="#setup" class="btn">← Edit study</a>' +
+        '</div>' +
+      '</div>' +
+      '<div id="results-body"><p class="hint">Loading results…</p></div>' +
+    '</div>';
+
+  var body = document.getElementById('results-body');
+
+  fetch(s.endpointUrl + '?key=' + encodeURIComponent(s.resultsKey||''))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data || !data.ok){
+        body.innerHTML = '<div class="banner warn"><span>⚠️</span><span>' +
+          (data && data.error === 'unauthorized'
+            ? 'The results key in Researcher tools doesn’t match RESULTS_KEY in your Apps Script. Fix it there, or open the Sheet directly.'
+            : 'Could not read results from the endpoint. The Google Sheet is still the source of truth — open it directly.') +
+          '</span></div>';
+        return;
+      }
+      renderResultsBody(body, data.rows || []);
+    })
+    .catch(function(){
+      body.innerHTML = '<div class="banner warn"><span>⚠️</span><span>Could not reach the results endpoint from here. If your Sheet link is set above, open it directly — your data is still being saved there.</span></div>';
+    });
+}
+
+function renderResultsBody(body, rows){
+  var s = STATE.study;
+  var stats = computeStatsFromRows(rows, s.tasks);
+
+  var rowsHtml = stats.perTask.map(function(row){
+    var destBreak = row.topDest.slice(0,3).map(function(k){ return esc(k)+' ('+row.destCounts[k]+')'; }).join(', ') || '—';
+    return '<tr><td style="max-width:260px">'+esc(row.task.text||'(untitled task)')+'</td>' +
+      '<td>'+row.n+'</td>' +
+      '<td><div class="row"><div class="bar-track"><div class="bar-fill '+barClass(row.successPct)+'" style="width:'+row.successPct+'%"></div></div><span class="mono">'+row.successPct+'%</span></div></td>' +
+      '<td><div class="row"><div class="bar-track"><div class="bar-fill '+barClass(row.directPct)+'" style="width:'+row.directPct+'%"></div></div><span class="mono">'+row.directPct+'%</span></div></td>' +
+      '<td class="mono">'+row.avgTime+'s</td>' +
+      '<td style="max-width:220px;font-size:.8rem;color:var(--ink-dim)">'+destBreak+'</td>' +
+    '</tr>';
+  }).join('');
+
+  body.innerHTML =
+    '<div class="stat-grid">' +
+      '<div class="stat-card"><div class="num">'+stats.totalSessions+'</div><div class="lbl">Completed sessions</div></div>' +
+      '<div class="stat-card"><div class="num">'+stats.overallSuccess+'%</div><div class="lbl">Overall success rate</div></div>' +
+      '<div class="stat-card"><div class="num">'+stats.overallDirect+'%</div><div class="lbl">Direct paths (no backtracking)</div></div>' +
+      '<div class="stat-card"><div class="num">'+stats.avgTime+'s</div><div class="lbl">Avg. time per task</div></div>' +
+    '</div>' +
+    '<div class="card">' +
+      '<span class="eyebrow">Per-task breakdown</span>' +
+      (rows.length===0 ? '<p style="margin-top:12px">No submissions yet. Share the link from Researcher tools — results will appear here automatically as people finish.</p>' :
+      '<div class="tbl-wrap"><table><thead><tr><th>Task</th><th>N</th><th>Success</th><th>Direct</th><th>Avg time</th><th>Where people landed</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div>') +
+    '</div>' +
+    (rows.length ? '<div class="row" style="margin-top:18px"><button class="btn" id="export-csv-btn">Export all results (CSV)</button><button class="btn btn-ghost" id="refresh-results-btn">Refresh</button></div>' : '<div class="row" style="margin-top:18px"><button class="btn btn-ghost" id="refresh-results-btn">Refresh</button></div>');
+
+  var refreshBtn = document.getElementById('refresh-results-btn');
+  if(refreshBtn) refreshBtn.onclick = function(){ renderResults(document.getElementById('app')); };
+
+  var exportBtn = document.getElementById('export-csv-btn');
+  if(exportBtn) exportBtn.onclick = function(){
+    var header = Object.keys(rows[0]);
+    var csvRows = [header].concat(rows.map(function(r){ return header.map(function(h){ return r[h]; }); }));
+    var csv = csvRows.map(function(row){ return row.map(function(v){ v = String(v==null?'':v).replace(/"/g,'""'); return /[",\n]/.test(v) ? '"'+v+'"' : v; }).join(','); }).join('\n');
+    var blob = new Blob([csv], {type:'text/csv'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'tree-test-results.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  };
+}
+/* ================= render dispatcher ================= */
+function render(){
+  var root = document.getElementById('app');
+  var r = route();
+  if(r === 'setup'){
+    if(!isUnlocked()) return renderGate(root, function(){ render(); }, 'Set up the study');
+    return renderSetup(root);
+  }
+  if(r === 'results'){
+    if(!isUnlocked()) return renderGate(root, function(){ render(); }, 'View results');
+    return renderResults(root);
+  }
+  return renderIntro(root);
+}
+
+/* topbar */
+function renderChrome(){
+  var bar = document.createElement('div');
+  bar.className = 'topbar';
+  bar.innerHTML = '<div class="brand"><span class="mark">TT</span><span>' + esc(STATE.study.title) + '</span></div>' +
+    '<div class="tabs">' +
+      '<button class="tab" data-r="test">Take the test</button>' +
+      '<button class="tab" data-r="setup">Researcher tools</button>' +
+    '</div>';
+  document.body.insertBefore(bar, document.getElementById('app'));
+  function syncTabs(){
+    var r = route();
+    bar.querySelectorAll('.tab').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-r') === r || (r==='results' && b.getAttribute('data-r')==='setup'));
+    });
+  }
+  bar.querySelectorAll('.tab').forEach(function(b){ b.onclick = function(){ location.hash = '#'+b.getAttribute('data-r'); }; });
+  window.addEventListener('hashchange', syncTabs);
+  syncTabs();
+}
+
+document.body.classList.add('shell');
+renderChrome();
+render();
+
+})();
+</script>
+</body>
+</html>
