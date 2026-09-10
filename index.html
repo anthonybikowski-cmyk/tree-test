@@ -430,6 +430,27 @@ function renderTestDone(){
   };
   window.__lastResult = resultRecord;
 
+  if(!s.endpointUrl){
+    renderThankYou(root);
+    return;
+  }
+
+  renderSaving(root);
+  attemptSubmit(root, s.endpointUrl, resultRecord, 0);
+}
+
+function renderSaving(root){
+  root.innerHTML =
+    '<div class="wrap">' +
+      '<div class="card">' +
+        '<span class="eyebrow">Almost done</span>' +
+        '<h1 style="font-size:1.6rem">Saving your responses…</h1>' +
+        '<p>Just a moment — please don\'t close this tab yet.</p>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderThankYou(root){
   root.innerHTML =
     '<div class="wrap">' +
       '<div class="card">' +
@@ -438,44 +459,70 @@ function renderTestDone(){
         '<p>Your responses have been recorded. We appreciate you taking the time to help us improve this experience.</p>' +
       '</div>' +
     '</div>';
+}
 
-  if(s.endpointUrl){
-    sendResultReliably(s.endpointUrl, resultRecord);
-  }
+function renderSaveError(root, endpointUrl, resultRecord, attempt){
+  root.innerHTML =
+    '<div class="wrap">' +
+      '<div class="card">' +
+        '<span class="eyebrow">One more try</span>' +
+        '<h1 style="font-size:1.6rem">We had trouble saving that</h1>' +
+        '<p>Your connection may have dropped. Please tap Retry below before closing this tab — your answers are still here and nothing has been lost yet.</p>' +
+        '<button class="btn btn-primary" id="retry-save-btn">Retry</button>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('retry-save-btn').onclick = function(){
+    renderSaving(root);
+    attemptSubmit(root, endpointUrl, resultRecord, attempt + 1);
+  };
 }
 
 /**
- * Sends the finished session to the results endpoint in a way that survives
- * the participant closing the tab immediately after seeing "Thank you!"
- * (which there's no reason for them not to do).
+ * Sends the finished session to the results endpoint and actually waits to
+ * find out whether it worked, instead of declaring success before we know.
  *
- * navigator.sendBeacon() is built exactly for this — the browser queues and
- * guarantees an attempt to deliver it even as the page unloads — whereas a
- * plain, un-awaited fetch() can simply get dropped mid-flight when the tab
- * closes before the request finishes. sendBeacon has a small payload cap
- * (~64KB) and doesn't support retries of its own, so if it's unavailable or
- * refuses to queue the payload (oversized, e.g. an unusually large tree/click
- * trail), fall back to fetch with keepalive, which asks the browser to keep
- * the request alive past page unload too.
+ * IMPORTANT: this deliberately does NOT use navigator.sendBeacon(). A Google
+ * Apps Script /exec URL responds with an HTTP redirect to a
+ * script.googleusercontent.com execution URL before your code actually runs
+ * — sendBeacon does not follow redirects (by spec), so a beacon request to
+ * this kind of endpoint silently vanishes before doPost ever sees it, even
+ * though sendBeacon() itself reports success. (Confirmed via the Apps
+ * Script Executions log: zero doPost invocations arrived after switching to
+ * sendBeacon, despite the page reporting every submission as sent.) Plain
+ * fetch follows redirects by default, so that's what's used here, with
+ * keepalive so the browser keeps trying to deliver it even if the
+ * participant closes the tab right after this call returns.
  */
-function sendResultReliably(endpointUrl, resultRecord){
+function attemptSubmit(root, endpointUrl, resultRecord, attempt){
   var body = JSON.stringify(resultRecord);
-  var sentViaBeacon = false;
-  if(navigator.sendBeacon){
-    try{
-      var blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
-      sentViaBeacon = navigator.sendBeacon(endpointUrl, blob);
-    }catch(e){ sentViaBeacon = false; }
+  var settled = false;
+
+  function succeed(){
+    if(settled) return;
+    settled = true;
+    renderThankYou(root);
   }
-  if(!sentViaBeacon){
-    fetch(endpointUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      keepalive: true,
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: body
-    }).catch(function(){ /* sent best-effort; nothing surfaced to the participant */ });
-  }
+
+  fetch(endpointUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    keepalive: true,
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: body
+  }).then(succeed).catch(function(){
+    if(settled) return;
+    settled = true;
+    if(attempt < 1){
+      attemptSubmit(root, endpointUrl, resultRecord, attempt + 1); // one silent automatic retry first
+    } else {
+      renderSaveError(root, endpointUrl, resultRecord, attempt);
+    }
+  });
+
+  // Don't leave someone staring at "Saving..." forever on a slow connection —
+  // keepalive means the browser keeps trying to finish delivering the
+  // request in the background even after we stop waiting for it here.
+  setTimeout(succeed, 8000);
 }
 /* ================= SETUP (admin) ================= */
 function renderGate(root, onOk, label){
